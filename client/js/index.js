@@ -1,34 +1,6 @@
-const campos = [
-  document.querySelector('#data'),
-  document.querySelector('#quantidade'),
-  document.querySelector('#valor')
-];
+const Negociacao = require('./app/models/Negociacao');
 
-const tbody = document.querySelector('table tbody');
+const n1 = new Negociacao(new Date(), 25, 200);
 
-document.querySelector('.form').addEventListener('submit', event => {
-  event.preventDefault();
-
-  const tr = document.createElement('tr');
-
-  campos.forEach(campo => {
-    const td = document.createElement('td');
-    td.textContent = campo.value;
-    tr.appendChild(td);
-  });
-
-  const tdVolume = document.createElement('td');
-  tdVolume.textContent = campos[1].value * campos[2].value;
-
-  tr.appendChild(tdVolume);
-
-  tbody.appendChild(tr);
-
-  limparCampos();
-});
-
-const limparCampos = () => {
-  campos[0].value = '';
-  campos[1].value = 1;
-  campos[2].value = '0.0';
-}
+console.log(n1);
+console.log('volume', n1.volume);
