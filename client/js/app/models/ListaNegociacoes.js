@@ -1,18 +1,17 @@
 class ListaNegociacoes {
 
-  constructor(context, trigger) {
+  constructor(trigger) {
     this._negociacoes = [];
-    this._context = context;
     this._trigger = trigger;
   }
 
-  _refreshView() {
-    Reflect.apply(this._trigger, this._context, [this]);
+  _refresh() {
+    this._trigger(this);
   }
 
   adiciona(negociacao) {
     this._negociacoes.push(negociacao);
-    this._refreshView();
+    this._refresh();
   }
   
   get negociacoes() {
@@ -21,6 +20,6 @@ class ListaNegociacoes {
   
   esvazia() {
     this._negociacoes = [];
-    this._refreshView();
+    this._refresh();
   }
 }
