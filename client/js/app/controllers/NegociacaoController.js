@@ -1,5 +1,7 @@
 class NegociacaoController {
   constructor() {
+    this._service = new NegociacaoService();
+
     const $ = document.querySelector.bind(document);
 
     this._inputData = $('#data');
@@ -12,15 +14,36 @@ class NegociacaoController {
 
   adiciona(event) {
     event.preventDefault();
-    this._negociacoes.adiciona(this._criaNegociacao());
-    this._mensagem.texto = 'Negociação adicionada com sucesso!';
-    this._limpaFormulario();
+    const negociacao = this._criaNegociacao();
+    this._negociacoes.adiciona(negociacao);
+    this._service.adicionaNegociacao(negociacao, erro => {
+      if (erro) {
+        this._mensagem.texto = erro;
+        return;
+      };
+
+      this._mensagem.texto = 'Negociação adicionada com sucesso!';
+      this._limpaFormulario();
+    });
   }
 
   apaga() {
     this._negociacoes.esvazia();
     this._mensagem.texto = 'Negociações apagadas com sucesso!';
     this._limpaFormulario();
+  }
+
+  importaNegociacoes() {
+    this._service.obterNegociacoesDaSemana((erro, negociacoes) => {
+      if (erro) {
+        this._mensagem.texto = erro;
+        return;
+      }
+
+      negociacoes.forEach(negociacao => this._negociacoes.adiciona(negociacao));
+      this._mensagem.texto = 'Negociações importadas com sucesso!';
+    });
+
   }
 
   _criaNegociacao() {
@@ -37,4 +60,6 @@ class NegociacaoController {
 
     this._inputData.focus();
   }
+
 }
+
