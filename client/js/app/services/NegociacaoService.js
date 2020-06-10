@@ -1,42 +1,43 @@
 class NegociacaoService {
 
-
-  obterNegociacoesDaSemana(cb) {
-
-    const xhr = new XMLHttpRequest();
-
-    xhr.open('GET', 'negociacoes/semana');
-
-    xhr.onreadystatechange = () => {
-      if (xhr.readyState == 4) {
-        if (xhr.status == 200) {
-          cb(null, JSON.parse(xhr.responseText).map(obj => new Negociacao(new Date(obj.data), obj.quantidade, obj.valor)));
-        } else {
-          console.log(xhr.responseText);
-          cb('Não foi possível obter as negociações do servidor');
-        }
-      }
-    };
-
-    xhr.send();
+  constructor() {
+    this._http = new HttpService();
   }
 
-  adicionaNegociacao(negociacao, cb) {
+  obterNegociacoesDaSemana() {
+    return this._http.get('negociacoes/semana')
+      .then(negociacoes => negociacoes.map(obj => new Negociacao(new Date(obj.data), obj.quantidade, obj.valor)))
+      .catch(erro => {
+        console.log(erro);
+        throw new Error('Não foi possível obter as negociações da semana');
+      });
+  }
 
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', '/negociacoes', true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
+  obterNegociacoesDaSemanaAnterior() {
+    return this._http.get('negociacoes/anterior')
+      .then(negociacoes => negociacoes.map(obj => new Negociacao(new Date(obj.data), obj.quantidade, obj.valor)))
+      .catch(erro => {
+        console.log(erro);
+        throw new Error('Não foi possível obter as negociações da semana anterior');
+      });
+  }
 
-    xhr.onreadystatechange = () => {
-      if (xhr.readyState === XMLHttpRequest.DONE) {
-        if (xhr.status === 200) {
-          cb(null);
-        } else {
-          cb('Não foi possível adicionar a negociação no servidor');
-        }
-      }
-    };
+  obterNegociacoesDaSemanaRetrasada() {
+    return this._http.get('negociacoes/retrasada')
+      .then(negociacoes => negociacoes.map(obj => new Negociacao(new Date(obj.data), obj.quantidade, obj.valor)))
+      .catch(erro => {
+        console.log(erro);
+        throw new Error('Não foi possível obter as negociações da semana retrasada');
+      });
+  }
 
-    xhr.send(JSON.stringify(negociacao));
+  adicionaNegociacao(negociacao) {
+
+    return this._http.post('/negociacoes', negociacao)
+      .then(data => true)
+      .catch(erro => {
+        console.log(erro);
+        throw new Error('Não foi possível adicionar a negociação no servidor');
+      });
   }
 }
