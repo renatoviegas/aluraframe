@@ -2,17 +2,20 @@
 
 var api = require('../api');
 
-module.exports  = function(app) {
-    
+module.exports = function (app) {
+
     app.route('/negociacoes/semana')
         .get(api.listaSemana);
-        
+
     app.route('/negociacoes/anterior')
         .get(api.listaAnterior);
-        
+
     app.route('/negociacoes/retrasada')
-        .get(api.listaRetrasada);  
-        
+        .get(api.listaRetrasada);
+
     app.route('/negociacoes')
-        .post(api.cadastraNegociacao);          
+        .get(api.lista);
+
+    app.route('/negociacoes')
+        .post(api.cadastraNegociacao);
 };

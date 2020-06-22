@@ -11,41 +11,57 @@ class NegociacaoController {
     this._negociacoes = new Bind(new ListaNegociacoes(), new NegociacoesView($('#negociacoesView')), 'adiciona', 'esvazia', 'ordena', 'inverteOrdem');
     this._mensagem = new Bind(new Mensagem(), new MensagemView($('#mensagemView')), 'texto');
     this._ordemAtual = '';
+
+    this._init();
+  }
+
+  _init() {
+    this._service
+      .lista()
+      .then(negociacoes => negociacoes.forEach(negociacao => this._negociacoes.adiciona(negociacao)))
+      .catch(erro => this._showError(erro));
+
+    setInterval(() => this._importaNegociacoes(), 60000);
+  }
+
+  _showError(error) {
+    console.log(error);
+    this._mensagem.texto = error;
   }
 
   adiciona(event) {
     event.preventDefault();
-    const negociacao = this._criaNegociacao();
-    this._negociacoes.adiciona(negociacao);
-    this._service.adicionaNegociacao(negociacao, erro => {
-      if (erro) {
-        this._mensagem.texto = erro;
-        return;
-      };
 
-      this._mensagem.texto = 'Negociação adicionada com sucesso!';
-      this._limpaFormulario();
-    });
+    const negociacao = this._criaNegociacao();
+
+    this._service
+      .cadastra(negociacao)
+      .then(mensagem => {
+        this._negociacoes.adiciona(negociacao);
+        this._mensagem.texto = mensagem;
+        this._limpaFormulario();
+      })
+      .catch(erro => this._showError(erro));
   }
 
   apaga() {
-    this._negociacoes.esvazia();
-    this._mensagem.texto = 'Negociações apagadas com sucesso!';
-    this._limpaFormulario();
+    this._service
+      .apaga()
+      .then(mensagem => {
+        this._mensagem.texto = mensagem;
+        this._negociacoes.esvazia();
+      })
+      .catch(erro => this._showError(erro));
   }
 
-  importaNegociacoes() {
-    Promise.all([
-      this._service.obterNegociacoesDaSemana(),
-      this._service.obterNegociacoesDaSemanaAnterior(),
-      this._service.obterNegociacoesDaSemanaRetrasada()
-    ]).then(data => {
-      data
-        .reduce((negociacoes, array) => negociacoes.concat(array), [])
-        .forEach(negociacao => this._negociacoes.adiciona(negociacao));
-      this._mensagem.texto = 'Negociações importadas com sucesso!';
-    })
-      .catch(erro => this._mensagem.texto = erro);
+  _importaNegociacoes() {
+    this._service
+      .importa(this._negociacoes.negociacoes)
+      .then(negociacoes => {
+        negociacoes.forEach(negociacao => this._negociacoes.adiciona(negociacao));
+        this._mensagem.texto = 'Negociações importadas com sucesso!';
+      })
+      .catch(erro => this._showError(erro));
   }
 
   ordena(coluna) {
@@ -61,8 +77,8 @@ class NegociacaoController {
   _criaNegociacao() {
     return new Negociacao(
       DateHelper.stringToDate(this._inputData.value),
-      this._inputQuantidade.value,
-      this._inputValor.value);
+      parseInt(this._inputQuantidade.value),
+      parseFloat(this._inputValor.value));
   }
 
   _limpaFormulario() {

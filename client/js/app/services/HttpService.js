@@ -1,45 +1,23 @@
-class HttpService {
+export class HttpService {
+
+  _handleErrors(res) {
+    if (res.ok) return res;
+
+    throw new Error(res.statusText);
+  }
 
   get(url) {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-
-      xhr.open('GET', url);
-
-      xhr.onreadystatechange = () => {
-        if (xhr.readyState == XMLHttpRequest.DONE) {
-          if (xhr.status == 200) {
-            resolve(JSON.parse(xhr.responseText));
-          } else {
-            reject(xhr.responseText);
-          }
-        }
-      };
-
-      xhr.send();
-    })
-
+    return fetch(url)
+      .then(res => this._handleErrors(res))
+      .then(res => res.json());
   }
 
   post(url, object) {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-
-      xhr.open('POST', url, true);
-      xhr.setRequestHeader('Content-Type', 'application/json');
-
-      xhr.onreadystatechange = () => {
-        if (xhr.readyState === XMLHttpRequest.DONE) {
-          if (xhr.status === 200) {
-            resolve(true);
-          } else {
-            reject(xhr.responseText);
-          }
-        }
-      };
-
-      xhr.send(JSON.stringify(object));
-    });
-
+    return fetch(url, {
+      headers: { 'content-type': 'application/json' },
+      method: 'post',
+      body: JSON.stringify(object)
+    })
+      .then(res => this._handleErrors(res));
   }
 }

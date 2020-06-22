@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Aprendendo indexed DB</title>
+
+</head>
+
+<body>
+
+  <button onclick="adiciona()">Adiciona Negociação</button>
+  <button onclick="listaTodos()">Listar todos</button>
+
+  <script src="js/app/models/Negociacao.js"></script>
+  <script>
+    const _store = 'negociacoes';
+    let connection;
+    const openRequest = window.indexedDB.open('aluraframe', 3);
+
+    openRequest.onupgradeneeded = e => {
+      console.log('Cria ou altera um banco já existente!');
+
+      const minhaConexao = e.target.result;
+
+      if (minhaConexao.objectStoreNames.contains(_store)) {
+        minhaConexao.deleteObjectStore(_store);
+      }
+
+      minhaConexao.createObjectStore(_store, { autoIncrement: true });
+    };
+
+    openRequest.onsuccess = e => {
+      console.log('Conexão obtida com sucesso!');
+      connection = e.target.result;
+    };
+
+    openRequest.onerror = e => {
+      console.log(e.target.error);
+    };
+
+    function adiciona() {
+      const negociacao = new Negociacao(new Date(), 1, 550);
+
+      const request = connection
+        .transaction([_store], 'readwrite')
+        .objectStore(_store)
+        .add(negociacao);
+
+      request.onsuccess = e => {
+        console.log('Negociação adicionada com sucesso!', negociacao);
+      }
+
+      request.onerror = e => {
+        console.log('Não foi possível adicionar a negociação');
+        console.log(e.target.error);
+      }
+    }
+
+    function listaTodos() {
+
+      const cursor = connection
+        .transaction([_store], 'readwrite')
+        .objectStore(_store)
+        .openCursor();
+
+      const negociacoes = [];
+
+      cursor.onsuccess = e => {
+        let atual = e.target.result;
+
+        if (atual) {
+          const dado = atual.value;
+
+          negociacoes.push(new Negociacao(dado._data, dado._quantidade, dado._valor));
+
+          atual.continue();
+        } else {
+          console.log(negociacoes);
+        }
+      }
+
+      cursor.onerror = e => {
+        console.log(e.target.error.name);        
+      }
+    }
+
+  </script>
+</body>
+
+</html>
